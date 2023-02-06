@@ -14,6 +14,7 @@ import org.springframework.web.servlet.mvc.WebContentInterceptor;
 import camp.nextstep.support.ResourceVersion;
 
 import javax.servlet.Filter;
+import java.time.Duration;
 
 @Configuration
 @EnableWebMvc
@@ -31,22 +32,23 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(final InterceptorRegistry registry) {
         WebContentInterceptor interceptor = new WebContentInterceptor();
-        interceptor.addCacheMapping(CacheControl.empty(), "TODO");
+        interceptor.addCacheMapping(CacheControl.noCache().cachePrivate(), "/");
         registry.addInterceptor(interceptor);
     }
 
     @Bean
-    public FilterRegistrationBean filterRegistrationBean(){
+    public FilterRegistrationBean filterRegistrationBean() {
         FilterRegistrationBean registration = new FilterRegistrationBean();
         Filter etagHeaderFilter = new ShallowEtagHeaderFilter();
         registration.setFilter(etagHeaderFilter);
-        registration.addUrlPatterns("TODO");
+        registration.addUrlPatterns("/etag", PREFIX_STATIC_RESOURCES + "/*");
         return registration;
     }
 
     @Override
     public void addResourceHandlers(final ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("TODO")
-                .addResourceLocations("TODO");
+        registry.addResourceHandler(PREFIX_STATIC_RESOURCES + "/" + version.getVersion() + "/**")
+                .addResourceLocations("classpath:/static/")
+                .setCacheControl(CacheControl.maxAge(Duration.ofDays(365)).cachePublic());
     }
 }
